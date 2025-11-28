@@ -4,15 +4,8 @@ using MediatR;
 
 namespace Library.Application.Commands.Readers;
 
-public class CreateReaderCommandHandler : IRequestHandler<CreateReaderCommand, Guid>
+public class CreateReaderCommandHandler(IRepository<Reader> readerRepository) : IRequestHandler<CreateReaderCommand, Guid>
 {
-    private readonly IRepository<Reader> _readerRepository;
-
-    public CreateReaderCommandHandler(IRepository<Reader> readerRepository)
-    {
-        _readerRepository = readerRepository;
-    }
-
     public async Task<Guid> Handle(CreateReaderCommand request, CancellationToken cancellationToken)
     {
         var reader = new Reader(
@@ -22,8 +15,8 @@ public class CreateReaderCommandHandler : IRequestHandler<CreateReaderCommand, G
             request.PhoneNumber
         );
 
-        await _readerRepository.AddAsync(reader, cancellationToken);
-        await _readerRepository.SaveChangesAsync(cancellationToken);
+        await readerRepository.AddAsync(reader, cancellationToken);
+        await readerRepository.SaveChangesAsync(cancellationToken);
 
         return reader.Id;
     }

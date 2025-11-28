@@ -5,16 +5,9 @@ using System.Linq.Expressions;
 
 namespace Library.Infrastructure.Repositories;
 
-public class Repository<T> : IRepository<T> where T : BaseEntity
+public class Repository<T>(LibraryDbContext context) : IRepository<T> where T : BaseEntity
 {
-    protected readonly LibraryDbContext _context;
-    protected readonly DbSet<T> _dbSet;
-
-    public Repository(LibraryDbContext context)
-    {
-        _context = context;
-        _dbSet = context.Set<T>();
-    }
+    protected readonly DbSet<T> _dbSet = context.Set<T>();
 
     public virtual async Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
@@ -51,6 +44,6 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
 
     public virtual async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        return await _context.SaveChangesAsync(cancellationToken);
+        return await context.SaveChangesAsync(cancellationToken);
     }
 }

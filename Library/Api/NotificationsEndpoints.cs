@@ -9,9 +9,9 @@ public static class NotificationsEndpoints
     {
         var group = app.MapGroup("/api/notifications").WithTags("Notifications");
 
-        group.MapDelete("/{notificationId:guid}", async (Guid notificationId, IMediator mediator) =>
+        group.MapDelete("/{notificationId:guid}", async (Guid notificationId, IMediator mediator, CancellationToken cancellationToken) =>
         {
-            await mediator.Send(new DeleteNotificationCommand(notificationId));
+            await mediator.Send(new DeleteNotificationCommand(notificationId), cancellationToken);
             return Results.NoContent();
         })
         .WithName("DeleteNotification")

@@ -8,47 +8,38 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Library.Infrastructure.Data;
 
-public class DatabaseSeeder
+public class DatabaseSeeder(LibraryDbContext context, ILogger<DatabaseSeeder> logger)
 {
-    private readonly LibraryDbContext _context;
-    private readonly ILogger<DatabaseSeeder> _logger;
-
-    public DatabaseSeeder(LibraryDbContext context, ILogger<DatabaseSeeder> logger)
-    {
-        _context = context;
-        _logger = logger;
-    }
-
     public async Task SeedAsync()
     {
         try
         {
-            _logger.LogInformation("Starting database seeding...");
+            logger.LogInformation("Starting database seeding...");
 
             // Check if already seeded
-            if (await _context.Set<Author>().AnyAsync())
+            if (await context.Set<Author>().AnyAsync())
             {
-                _logger.LogInformation("Database already seeded. Skipping...");
+                logger.LogInformation("Database already seeded. Skipping...");
                 return;
             }
 
             // Seed Authors
             var authors = await SeedAuthorsAsync();
-            _logger.LogInformation("Seeded {Count} authors", authors.Count);
+            logger.LogInformation("Seeded {Count} authors", authors.Count);
 
             // Seed Readers
             var readers = await SeedReadersAsync();
-            _logger.LogInformation("Seeded {Count} readers", readers.Count);
+            logger.LogInformation("Seeded {Count} readers", readers.Count);
 
             // Seed Books
             var bookCount = await SeedBooksAsync(authors);
-            _logger.LogInformation("Seeded {Count} books", bookCount);
+            logger.LogInformation("Seeded {Count} books", bookCount);
 
-            _logger.LogInformation("Database seeding completed successfully!");
+            logger.LogInformation("Database seeding completed successfully!");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while seeding database");
+            logger.LogError(ex, "Error occurred while seeding database");
             throw;
         }
     }
@@ -79,8 +70,8 @@ public class DatabaseSeeder
             authors.Add(author);
         }
 
-        await _context.Set<Author>().AddRangeAsync(authors);
-        await _context.SaveChangesAsync();
+        await context.Set<Author>().AddRangeAsync(authors);
+        await context.SaveChangesAsync();
 
         return authors;
     }
@@ -116,8 +107,8 @@ public class DatabaseSeeder
             readers.Add(readerEntity);
         }
 
-        await _context.Set<Reader>().AddRangeAsync(readers);
-        await _context.SaveChangesAsync();
+        await context.Set<Reader>().AddRangeAsync(readers);
+        await context.SaveChangesAsync();
 
         return readers;
     }
@@ -176,7 +167,9 @@ public class DatabaseSeeder
                 var publishedDate = new DateTime(
                     Math.Max(1800, Math.Min(DateTime.UtcNow.Year, publishedYear)),
                     random.Next(1, 13),
-                    random.Next(1, 28)
+                    random.Next(1, 28),
+                    0, 0, 0,
+                    DateTimeKind.Utc
                 );
 
                 var book = new Book(
@@ -190,11 +183,11 @@ public class DatabaseSeeder
                 books.Add(book);
             }
 
-            await _context.Set<Book>().AddRangeAsync(books);
-            await _context.SaveChangesAsync();
+            await context.Set<Book>().AddRangeAsync(books);
+            await context.SaveChangesAsync();
 
             totalBooks += books.Count;
-            _logger.LogInformation("Seeded batch {Batch}: {Count} books (Total: {Total})",
+            logger.LogInformation("Seeded batch {Batch}: {Count} books (Total: {Total})",
                 batch + 1, books.Count, totalBooks);
         }
 

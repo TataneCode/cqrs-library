@@ -11,17 +11,17 @@ public static class ReadersEndpoints
     {
         var group = app.MapGroup("/api/readers").WithTags("Readers");
 
-        group.MapGet("/", async (IMediator mediator) =>
+        group.MapGet("/", async (IMediator mediator, CancellationToken cancellationToken) =>
         {
-            var readers = await mediator.Send(new GetAllReadersQuery());
+            var readers = await mediator.Send(new GetAllReadersQuery(), cancellationToken);
             return Results.Ok(readers);
         })
         .WithName("GetAllReaders")
         .Produces(200);
 
-        group.MapPost("/", async ([FromBody] CreateReaderCommand command, IMediator mediator) =>
+        group.MapPost("/", async ([FromBody] CreateReaderCommand command, IMediator mediator, CancellationToken cancellationToken) =>
         {
-            var readerId = await mediator.Send(command);
+            var readerId = await mediator.Send(command, cancellationToken);
             return Results.Created($"/api/readers/{readerId}", new { id = readerId });
         })
         .WithName("CreateReader")

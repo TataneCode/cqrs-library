@@ -1,5 +1,9 @@
+using Library.Api;
+using Library.Domain.Entities;
 using Library.Infrastructure.Data;
 using Library.Infrastructure.Persistence;
+using Library.Infrastructure.Repositories;
+using Library.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,7 +13,21 @@ builder.Services.AddOpenApi();
 
 // Add DbContext
 builder.Services.AddDbContext<LibraryDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
+
+// Add MediatR
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Program>());
+
+// Add Repositories
+builder.Services.AddScoped<IBookRepository, BookRepository>();
+builder.Services.AddScoped<IRepository<Book>, BookRepository>();
+builder.Services.AddScoped<IRepository<Author>, Repository<Author>>();
+builder.Services.AddScoped<IRepository<Reader>, Repository<Reader>>();
+builder.Services.AddScoped<IRepository<Notification>, Repository<Notification>>();
+
+// Add Background Services
+builder.Services.AddHostedService<BookReturnNotificationService>();
 
 // Add DatabaseSeeder
 builder.Services.AddScoped<DatabaseSeeder>();
@@ -22,11 +40,16 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+// Map API endpoints
+app.MapAuthorsEndpoints();
+app.MapBooksEndpoints();
+app.MapReadersEndpoints();
+app.MapNotificationsEndpoints();
 
 // Check for database seeding
-var needSeed = builder.Configuration.GetValue<bool>("NeedSeed", false) ||
-               Environment.GetEnvironmentVariable("NeedSeed")?.ToLower() == "true";
+var needSeed =
+    builder.Configuration.GetValue<bool>("NeedSeed", false)
+    || Environment.GetEnvironmentVariable("NeedSeed")?.ToLower() == "true";
 
 if (needSeed)
 {
@@ -40,18 +63,10 @@ if (needSeed)
 
         var context = services.GetRequiredService<LibraryDbContext>();
 
-        // Ensure database is created
-        await context.Database.EnsureCreatedAsync();
-        logger.LogInformation("Database ensured to exist.");
-
         // Run migrations
-        var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
-        if (pendingMigrations.Any())
-        {
-            logger.LogInformation("Applying pending migrations...");
-            await context.Database.MigrateAsync();
-            logger.LogInformation("Migrations applied successfully.");
-        }
+        logger.LogInformation("Applying migrations...");
+        await context.Database.MigrateAsync();
+        logger.LogInformation("Migrations applied successfully.");
 
         // Seed database
         var seeder = services.GetRequiredService<DatabaseSeeder>();
@@ -65,28 +80,4 @@ if (needSeed)
     }
 }
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
-app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+await app.RunAsync();

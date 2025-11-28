@@ -3,11 +3,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Library.Infrastructure.Persistence;
 
-public class LibraryDbContext : DbContext
+public class LibraryDbContext(DbContextOptions<LibraryDbContext> options) : DbContext(options)
 {
-    public LibraryDbContext(DbContextOptions<LibraryDbContext> options) : base(options)
-    {
-    }
 
     public DbSet<Author> Authors => Set<Author>();
     public DbSet<Book> Books => Set<Book>();

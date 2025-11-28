@@ -252,9 +252,9 @@ Test the API is running:
 
 ```bash
 # Using curl
-curl http://localhost:8080/weatherforecast
+curl http://localhost:8080/api/authors
 
-# Expected: JSON response with weather forecast data
+# Expected: JSON response with authors data
 ```
 
 ## 🐳 Docker Setup

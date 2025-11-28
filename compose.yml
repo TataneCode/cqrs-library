@@ -1,0 +1,71 @@
+# Docker Compose for Development
+# Use: docker compose up
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: cqrs-library-db-dev
+    environment:
+      POSTGRES_DB: librarydb
+      POSTGRES_USER: libraryuser
+      POSTGRES_PASSWORD: librarypass
+      # Enable query logging for development
+      POSTGRES_INITDB_ARGS: -c log_statement=all
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    networks:
+      - library-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U libraryuser -d librarydb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  library-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: cqrs-library-api-dev
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Host=postgres;Database=librarydb;Username=libraryuser;Password=librarypass
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+      # Uncomment to enable seeding in development
+      # NeedSeed: "true"
+    ports:
+      - "8080:8080"
+      - "5000:5000"
+    volumes:
+      # Mount source code for hot reload
+      - ./Library:/app/Library:delegated
+      - ./Directory.Packages.props:/app/Directory.Packages.props:ro
+      # Don't mount obj and bin folders
+      - /app/Library/obj
+      - /app/Library/bin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - library-network
+    # Enable debugging
+    stdin_open: true
+    tty: true
+    # Development-specific health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/authors"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  postgres_data_dev:
+    driver: local
+
+networks:
+  library-network:
+    driver: bridge

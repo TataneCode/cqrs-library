@@ -11,11 +11,8 @@ public interface IBookRepository : IRepository<Book>
     Task<Book?> GetByISBNAsync(string isbn, CancellationToken cancellationToken = default);
 }
 
-public class BookRepository : Repository<Book>, IBookRepository
+public class BookRepository(LibraryDbContext context) : Repository<Book>(context), IBookRepository
 {
-    public BookRepository(LibraryDbContext context) : base(context)
-    {
-    }
 
     public async Task<IEnumerable<Book>> GetAvailableBooksAsync(CancellationToken cancellationToken = default)
     {
