@@ -1,0 +1,196 @@
+Title,BookType,Year
+Pride and Prejudice,Novel,1813
+Sense and Sensibility,Novel,1811
+Emma,Novel,1815
+Mansfield Park,Novel,1814
+Great Expectations,Novel,1861
+Oliver Twist,Novel,1838
+A Tale of Two Cities,Novel,1859
+David Copperfield,Novel,1850
+The Adventures of Tom Sawyer,Novel,1876
+The Adventures of Huckleberry Finn,Novel,1884
+Mrs Dalloway,Novel,1925
+To the Lighthouse,Novel,1927
+Orlando,Novel,1928
+The Old Man and the Sea,Novel,1952
+For Whom the Bell Tolls,Novel,1940
+A Farewell to Arms,Novel,1929
+Murder on the Orient Express,Novel,1934
+And Then There Were None,Novel,1939
+The Murder of Roger Ackroyd,Novel,1926
+Death on the Nile,Novel,1937
+1984,Novel,1949
+Animal Farm,Novel,1945
+Harry Potter and the Philosopher's Stone,Novel,1997
+Harry Potter and the Chamber of Secrets,Novel,1998
+Harry Potter and the Prisoner of Azkaban,Novel,1999
+Harry Potter and the Goblet of Fire,Novel,2000
+The Shining,Novel,1977
+It,Novel,1986
+The Stand,Novel,1978
+Carrie,Novel,1974
+The Handmaid's Tale,Novel,1985
+The Testaments,Novel,2019
+One Hundred Years of Solitude,Novel,1967
+Love in the Time of Cholera,Novel,1985
+Beloved,Novel,1987
+Song of Solomon,Novel,1977
+Norwegian Wood,Novel,1987
+Kafka on the Shore,Novel,2002
+The House of the Spirits,Novel,1982
+Eva Luna,Novel,1987
+The Alchemist,Novel,1988
+Americanah,Novel,2013
+Half of a Yellow Sun,Novel,2006
+Midnight's Children,Novel,1981
+The Satanic Verses,Novel,1988
+White Teeth,Novel,2000
+NW,Novel,2012
+American Gods,Novel,2001
+Coraline,Novel,2002
+The Graveyard Book,Novel,2008
+Gone with the Wind,Novel,1936
+War and Peace,Novel,1869
+Anna Karenina,Novel,1877
+Crime and Punishment,Novel,1866
+The Brothers Karamazov,Novel,1880
+The Metamorphosis,Novel,1915
+The Trial,Novel,1925
+The Stranger,Novel,1942
+The Plague,Novel,1947
+Siddhartha,Novel,1922
+Steppenwolf,Novel,1927
+Ulysses,Novel,1922
+A Portrait of the Artist as a Young Man,Novel,1916
+The Picture of Dorian Gray,Novel,1890
+Wuthering Heights,Novel,1847
+Jane Eyre,Novel,1847
+Frankenstein,Novel,1818
+Hamlet,Novel,1600
+Macbeth,Novel,1606
+Romeo and Juliet,Novel,1597
+The Iliad,Novel,-750
+The Odyssey,Novel,-725
+The Divine Comedy,Novel,1320
+Don Quixote,Novel,1605
+Les Misérables,Novel,1862
+The Hunchback of Notre-Dame,Novel,1831
+The Three Musketeers,Novel,1844
+The Count of Monte Cristo,Novel,1844
+Twenty Thousand Leagues Under the Sea,Novel,1870
+Around the World in Eighty Days,Novel,1873
+The Time Machine,Novel,1895
+The War of the Worlds,Novel,1898
+Foundation,Novel,1951
+I Robot,Novel,1950
+2001 A Space Odyssey,Novel,1968
+Childhood's End,Novel,1953
+Fahrenheit 451,Novel,1953
+The Martian Chronicles,Novel,1950
+Do Androids Dream of Electric Sheep,Novel,1968
+The Man in the High Castle,Novel,1962
+The Left Hand of Darkness,Novel,1969
+The Dispossessed,Novel,1974
+Slaughterhouse-Five,Novel,1969
+Cat's Cradle,Novel,1963
+Catch-22,Novel,1961
+One Flew Over the Cuckoo's Nest,Novel,1962
+Fear and Loathing in Las Vegas,Novel,1971
+On the Road,Novel,1957
+Howl and Other Poems,Novel,1956
+The Bell Jar,Novel,1963
+I Know Why the Caged Bird Sings,Novel,1969
+Invisible Man,Novel,1952
+The Fire Next Time,Novel,1963
+Everything That Rises Must Converge,Novel,1965
+The Heart Is a Lonely Hunter,Novel,1940
+In Cold Blood,Novel,1966
+To Kill a Mockingbird,Novel,1960
+The Grapes of Wrath,Novel,1939
+Of Mice and Men,Novel,1937
+The Great Gatsby,Novel,1925
+The Sound and the Fury,Novel,1929
+As I Lay Dying,Novel,1930
+A Streetcar Named Desire,Novel,1947
+Death of a Salesman,Novel,1949
+The Hobbit,Novel,1937
+The Lord of the Rings,Novel,1954
+The Lion the Witch and the Wardrobe,Novel,1950
+The Magician's Nephew,Novel,1955
+A Game of Thrones,Novel,1996
+A Clash of Kings,Novel,1998
+The Name of the Wind,Novel,2007
+Mistborn,Novel,2006
+The Way of Kings,Novel,2010
+The Color of Magic,Novel,1983
+Guards Guards,Novel,1989
+The Hitchhiker's Guide to the Galaxy,Novel,1979
+Solaris,Novel,1961
+Invisible Cities,Novel,1972
+If on a winter's night a traveler,Novel,1979
+The Name of the Rose,Novel,1980
+Foucault's Pendulum,Novel,1988
+Ficciones,Novel,1944
+Labyrinths,Novel,1962
+Kindred,Novel,1979
+Parable of the Sower,Novel,1993
+The Fifth Season,Novel,2015
+The Obelisk Gate,Novel,2016
+The Blade Itself,Novel,2006
+Assassin's Apprentice,Novel,1995
+Master and Commander,Novel,1969
+The Last Kingdom,Novel,2004
+Wolf Hall,Novel,2009
+Bring Up the Bodies,Novel,2012
+The Pillars of the Earth,Novel,1989
+World Without End,Novel,2007
+The Other Boleyn Girl,Novel,2001
+The Da Vinci Code,Novel,2003
+Angels and Demons,Novel,2000
+A Time to Kill,Novel,1989
+The Firm,Novel,1991
+Jurassic Park,Novel,1990
+The Hunt for Red October,Novel,1984
+Killing Floor,Novel,1997
+Gone Girl,Novel,2012
+The Girl on the Train,Novel,2015
+The Girl with the Dragon Tattoo,Novel,2005
+The Snowman,Novel,2007
+The Secret History,Novel,1992
+The Goldfinch,Novel,2013
+The Corrections,Novel,2001
+Infinite Jest,Novel,1996
+The Road,Novel,2006
+Blood Meridian,Novel,1985
+White Noise,Novel,1985
+Gravity's Rainbow,Novel,1973
+Batman The Dark Knight Returns,Comic,1986
+Watchmen,Comic,1987
+V for Vendetta,Comic,1988
+The Sandman,Comic,1989
+Maus,Comic,1991
+Spider-Man Blue,Comic,2002
+The Walking Dead,Comic,2003
+Saga,Comic,2012
+Y The Last Man,Comic,2002
+Fables,Comic,2002
+Naruto,Manga,1999
+One Piece,Manga,1997
+Dragon Ball,Manga,1984
+Attack on Titan,Manga,2009
+Death Note,Manga,2003
+Fullmetal Alchemist,Manga,2001
+My Hero Academia,Manga,2014
+Tokyo Ghoul,Manga,2011
+Demon Slayer,Manga,2016
+Bleach,Manga,2001
+The New York Times,Newspaper,2020
+The Washington Post,Newspaper,2021
+The Guardian,Newspaper,2022
+Le Monde,Newspaper,2020
+The Times,Newspaper,2021
+USA Today,Newspaper,2022
+The Wall Street Journal,Newspaper,2020
+Financial Times,Newspaper,2021
+The Daily Telegraph,Newspaper,2022
+Los Angeles Times,Newspaper,2020

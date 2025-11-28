@@ -1,0 +1,52 @@
+# Base Docker Compose Configuration
+# This file contains shared configuration for all environments
+#
+# Usage:
+#   Development: docker-compose up (uses docker-compose.override.yml automatically)
+#   Production:  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: cqrs-library-db
+    environment:
+      POSTGRES_DB: librarydb
+      POSTGRES_USER: libraryuser
+      POSTGRES_PASSWORD: librarypass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - library-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U libraryuser -d librarydb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  library-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: cqrs-library-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Host=postgres;Database=librarydb;Username=libraryuser;Password=librarypass
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - library-network
+
+volumes:
+  postgres_data:
+
+networks:
+  library-network:
+    driver: bridge

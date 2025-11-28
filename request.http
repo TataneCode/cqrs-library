@@ -1,0 +1,384 @@
+### CQRS Library Management API
+### REST Client file for testing all API endpoints
+###
+### Usage:
+### - Install REST Client extension in VS Code
+### - Click "Send Request" above each request
+### - Or use curl/Postman with the same endpoints
+
+@baseUrl = http://localhost:5000
+@dockerUrl = http://localhost:8080
+
+# You can change this to use Docker URL
+@apiUrl = {{baseUrl}}
+
+### Variables for testing (update these with actual IDs after creating resources)
+@authorId = 00000000-0000-0000-0000-000000000000
+@bookId = 00000000-0000-0000-0000-000000000000
+@readerId = 00000000-0000-0000-0000-000000000000
+@notificationId = 00000000-0000-0000-0000-000000000000
+
+###############################################################################
+### AUTHORS
+###############################################################################
+
+### Get All Authors
+GET {{apiUrl}}/api/authors
+Accept: application/json
+
+###
+
+### Create Author - Example 1
+POST {{apiUrl}}/api/authors
+Content-Type: application/json
+
+{
+  "firstName": "George",
+  "lastName": "Martin",
+  "biography": "American novelist and short story writer known for A Song of Ice and Fire series"
+}
+
+###
+
+### Create Author - Example 2
+POST {{apiUrl}}/api/authors
+Content-Type: application/json
+
+{
+  "firstName": "Brandon",
+  "lastName": "Sanderson",
+  "biography": "American fantasy and science fiction author, best known for the Mistborn series"
+}
+
+###
+
+### Create Author - Without Biography
+POST {{apiUrl}}/api/authors
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "biography": null
+}
+
+###############################################################################
+### READERS
+###############################################################################
+
+### Get All Readers
+GET {{apiUrl}}/api/readers
+Accept: application/json
+
+###
+
+### Create Reader - Example 1
+POST {{apiUrl}}/api/readers
+Content-Type: application/json
+
+{
+  "firstName": "Alice",
+  "lastName": "Johnson",
+  "email": "alice.johnson@example.com",
+  "phoneNumber": "555-0123"
+}
+
+###
+
+### Create Reader - Example 2
+POST {{apiUrl}}/api/readers
+Content-Type: application/json
+
+{
+  "firstName": "Bob",
+  "lastName": "Smith",
+  "email": "bob.smith@example.com",
+  "phoneNumber": "555-0456"
+}
+
+###
+
+### Create Reader - Without Phone Number
+POST {{apiUrl}}/api/readers
+Content-Type: application/json
+
+{
+  "firstName": "Charlie",
+  "lastName": "Brown",
+  "email": "charlie.brown@example.com",
+  "phoneNumber": null
+}
+
+###############################################################################
+### BOOKS
+###############################################################################
+
+### Get All Books
+GET {{apiUrl}}/api/books
+Accept: application/json
+
+###
+
+### Get Available Books (not currently borrowed)
+GET {{apiUrl}}/api/books/available
+Accept: application/json
+
+###
+
+### Create Book - Novel
+# NOTE: Replace {{authorId}} with an actual author ID from GET /api/authors
+POST {{apiUrl}}/api/books
+Content-Type: application/json
+
+{
+  "title": "The Winds of Winter",
+  "isbn": "9780553801477",
+  "type": "Novel",
+  "publishedDate": "2024-12-01T00:00:00Z",
+  "authorId": "{{authorId}}",
+  "description": "The highly anticipated sixth novel in the epic fantasy series A Song of Ice and Fire"
+}
+
+###
+
+### Create Book - Comic
+POST {{apiUrl}}/api/books
+Content-Type: application/json
+
+{
+  "title": "Batman: The Long Halloween",
+  "isbn": "9781563894695",
+  "type": "Comic",
+  "publishedDate": "1996-12-01T00:00:00Z",
+  "authorId": "{{authorId}}",
+  "description": "A 13-issue limited series written by Jeph Loeb with art by Tim Sale"
+}
+
+###
+
+### Create Book - Manga
+POST {{apiUrl}}/api/books
+Content-Type: application/json
+
+{
+  "title": "One Piece Volume 1",
+  "isbn": "9781569319017",
+  "type": "Manga",
+  "publishedDate": "1997-12-24T00:00:00Z",
+  "authorId": "{{authorId}}",
+  "description": "First volume of the popular manga series by Eiichiro Oda"
+}
+
+###
+
+### Create Book - Newspaper
+POST {{apiUrl}}/api/books
+Content-Type: application/json
+
+{
+  "title": "The New York Times - January 2024",
+  "isbn": "9780000000001",
+  "type": "Newspaper",
+  "publishedDate": "2024-01-01T00:00:00Z",
+  "authorId": "{{authorId}}",
+  "description": "Monthly compilation of The New York Times"
+}
+
+###
+
+### Create Book - Without Description
+POST {{apiUrl}}/api/books
+Content-Type: application/json
+
+{
+  "title": "Sample Book",
+  "isbn": "9781234567890",
+  "type": "Novel",
+  "publishedDate": "2024-01-01T00:00:00Z",
+  "authorId": "{{authorId}}",
+  "description": null
+}
+
+###############################################################################
+### BOOK BORROWING & RETURNING
+###############################################################################
+
+### Borrow a Book
+# NOTE: Replace {{bookId}} and {{readerId}} with actual IDs
+POST {{apiUrl}}/api/books/{{bookId}}/borrow
+Content-Type: application/json
+
+{
+  "readerId": "{{readerId}}"
+}
+
+###
+
+### Return a Book
+# NOTE: Replace {{bookId}} with an actual book ID that is currently borrowed
+POST {{apiUrl}}/api/books/{{bookId}}/return
+
+###############################################################################
+### NOTIFICATIONS
+###############################################################################
+
+### Delete a Notification
+# NOTE: Replace {{notificationId}} with an actual notification ID
+# Notifications are created by the background service when books are overdue
+DELETE {{apiUrl}}/api/notifications/{{notificationId}}
+
+###############################################################################
+### COMPLETE WORKFLOW EXAMPLES
+###############################################################################
+
+### Example Workflow 1: Create Author, Book, and Reader, then Borrow
+# Step 1: Create an Author
+POST {{apiUrl}}/api/authors
+Content-Type: application/json
+
+{
+  "firstName": "Patrick",
+  "lastName": "Rothfuss",
+  "biography": "American fantasy writer, best known for The Kingkiller Chronicle"
+}
+
+# Copy the returned ID and use it in Step 2
+
+###
+
+# Step 2: Create a Book by that Author
+POST {{apiUrl}}/api/books
+Content-Type: application/json
+
+{
+  "title": "The Name of the Wind",
+  "isbn": "9780756404079",
+  "type": "Novel",
+  "publishedDate": "2007-03-27T00:00:00Z",
+  "authorId": "PASTE-AUTHOR-ID-HERE",
+  "description": "The first book in The Kingkiller Chronicle series"
+}
+
+# Copy the returned book ID
+
+###
+
+# Step 3: Create a Reader
+POST {{apiUrl}}/api/readers
+Content-Type: application/json
+
+{
+  "firstName": "Emma",
+  "lastName": "Watson",
+  "email": "emma.watson@example.com",
+  "phoneNumber": "555-9999"
+}
+
+# Copy the returned reader ID
+
+###
+
+# Step 4: Borrow the Book
+POST {{apiUrl}}/api/books/PASTE-BOOK-ID-HERE/borrow
+Content-Type: application/json
+
+{
+  "readerId": "PASTE-READER-ID-HERE"
+}
+
+###
+
+# Step 5: Check Available Books (should not include the borrowed book)
+GET {{apiUrl}}/api/books/available
+Accept: application/json
+
+###
+
+# Step 6: Return the Book
+POST {{apiUrl}}/api/books/PASTE-BOOK-ID-HERE/return
+
+###
+
+# Step 7: Check Available Books Again (should now include the returned book)
+GET {{apiUrl}}/api/books/available
+Accept: application/json
+
+###############################################################################
+### TESTING ERROR SCENARIOS
+###############################################################################
+
+### Attempt to Create Author with Empty Name (should fail)
+POST {{apiUrl}}/api/authors
+Content-Type: application/json
+
+{
+  "firstName": "",
+  "lastName": "Test",
+  "biography": "This should fail"
+}
+
+###
+
+### Attempt to Create Reader with Invalid Email (should fail)
+POST {{apiUrl}}/api/readers
+Content-Type: application/json
+
+{
+  "firstName": "Invalid",
+  "lastName": "Reader",
+  "email": "",
+  "phoneNumber": "555-0000"
+}
+
+###
+
+### Attempt to Borrow Non-existent Book (should fail)
+POST {{apiUrl}}/api/books/00000000-0000-0000-0000-000000000001/borrow
+Content-Type: application/json
+
+{
+  "readerId": "{{readerId}}"
+}
+
+###
+
+### Attempt to Borrow Already Borrowed Book (should fail)
+# First borrow a book, then try to borrow it again with a different reader
+POST {{apiUrl}}/api/books/{{bookId}}/borrow
+Content-Type: application/json
+
+{
+  "readerId": "{{readerId}}"
+}
+
+###
+
+### Attempt to Return Book That Isn't Borrowed (should fail)
+POST {{apiUrl}}/api/books/{{bookId}}/return
+
+###############################################################################
+### SEED DATA QUERIES
+### Use these after running the app with NeedSeed=true
+###############################################################################
+
+### Get All Authors (should return 107 authors if seeded)
+GET {{apiUrl}}/api/authors
+Accept: application/json
+
+###
+
+### Get All Readers (should return 100 readers if seeded)
+GET {{apiUrl}}/api/readers
+Accept: application/json
+
+###
+
+### Get All Books (should return 10,000 books if seeded)
+GET {{apiUrl}}/api/books
+Accept: application/json
+
+###
+
+### Get Available Books (should return 10,000 books if seeded and none borrowed)
+GET {{apiUrl}}/api/books/available
+Accept: application/json

@@ -1,0 +1,77 @@
+# Traefik Static Configuration
+# This file defines Traefik's global configuration
+
+# API and Dashboard
+api:
+  dashboard: true
+  insecure: false  # Set to true for development, false for production
+
+# Entry Points (ports that Traefik listens on)
+entryPoints:
+  web:
+    address: ":80"
+    # HTTP to HTTPS redirect
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true
+
+  websecure:
+    address: ":443"
+    http:
+      tls:
+        certResolver: letsencrypt
+        # Modern TLS configuration
+        options: modern
+
+  # Traefik dashboard (optional)
+  traefik:
+    address: ":8080"
+
+# Certificate Resolvers (for Let's Encrypt SSL)
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: your-email@example.com  # Change this!
+      storage: /letsencrypt/acme.json
+      # Use staging for testing to avoid rate limits
+      # caServer: https://acme-staging-v02.api.letsencrypt.org/directory
+      httpChallenge:
+        entryPoint: web
+
+# Docker Provider
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: library-network
+    watch: true
+
+  # File provider for additional dynamic configuration
+  file:
+    filename: /etc/traefik/dynamic.yml
+    watch: true
+
+# Logging
+log:
+  level: INFO
+  format: json
+
+# Access Logs
+accessLog:
+  format: json
+  bufferingSize: 100
+
+# Metrics (Prometheus)
+metrics:
+  prometheus:
+    entryPoint: traefik
+    addEntryPointsLabels: true
+    addServicesLabels: true
+
+# Global settings
+global:
+  checkNewVersion: true
+  sendAnonymousUsage: false
