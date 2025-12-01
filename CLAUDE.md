@@ -48,16 +48,36 @@ dotnet watch --project Library/Library.csproj
 
 ### Testing
 
+The project has comprehensive test coverage with both unit and integration tests.
+
 ```bash
-# Run all tests (once test project is created)
+# Run all tests
 dotnet test
 
-# Run a single test
+# Run unit tests only
+dotnet test Library.Tests/Library.Tests.csproj
+
+# Run integration tests only
+dotnet test Library.IntegrationTests/Library.IntegrationTests.csproj
+
+# Run a specific test
 dotnet test --filter "FullyQualifiedName~TestClassName.TestMethodName"
 
 # Run tests with verbosity
 dotnet test --verbosity detailed
+
+# Run tests with code coverage
+dotnet test --collect:"XPlat Code Coverage" --settings coverage.runsettings --results-directory ./TestResults
+
+# Generate coverage report (requires reportgenerator tool)
+reportgenerator -reports:"./TestResults/*/coverage.cobertura.xml" -targetdir:"./TestResults/coveragereport" -reporttypes:Html
 ```
+
+**Test Coverage:**
+- **113 unit tests** covering Domain entities, Command handlers, and Query handlers
+- **98.5% code coverage** for Application and Domain layers
+- **100% branch coverage** for business logic
+- Tests use xUnit, Moq, and FluentAssertions
 
 ### Docker
 
@@ -96,9 +116,14 @@ curl -X POST http://localhost:5000/api/authors \
 ## Code Organization Notes
 
 - The domain-centric architecture (Api, Application, Domain, Infrastructure) is fully implemented as directories within the Library project
-- A unit test project (Library.Tests) exists with xUnit, Moq, and FluentAssertions
+- **Comprehensive test coverage** with 113 unit tests achieving 98.5% code coverage
+- Two test projects:
+  - **Library.Tests**: Unit tests for Domain entities and Application layer (CQRS handlers)
+  - **Library.IntegrationTests**: Integration tests for API endpoints using Testcontainers
+- Test tools: xUnit, Moq, FluentAssertions, Testcontainers, Respawn
 - Central package management is configured using Directory.Packages.props
 - Database seeding is available via the DatabaseSeeder service (see SEEDING.md)
+- Code coverage filtering configured in `coverage.runsettings` to focus on business logic
 
 ## CQRS Implementation
 

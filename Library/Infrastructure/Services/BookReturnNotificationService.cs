@@ -1,14 +1,12 @@
 using Library.Domain.Entities;
 using Library.Infrastructure.Repositories;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Library.Infrastructure.Services;
 
 public class BookReturnNotificationService(
     IServiceProvider serviceProvider,
-    ILogger<BookReturnNotificationService> logger) : BackgroundService
+    ILogger<BookReturnNotificationService> logger
+) : BackgroundService
 {
     private readonly TimeSpan _checkInterval = TimeSpan.FromHours(1);
 
@@ -37,7 +35,9 @@ public class BookReturnNotificationService(
     {
         using var scope = serviceProvider.CreateScope();
         var bookRepository = scope.ServiceProvider.GetRequiredService<IBookRepository>();
-        var notificationRepository = scope.ServiceProvider.GetRequiredService<IRepository<Notification>>();
+        var notificationRepository = scope.ServiceProvider.GetRequiredService<
+            IRepository<Notification>
+        >();
 
         var overdueBooks = await bookRepository.GetOverdueBooksAsync(cancellationToken);
         var overdueBooksList = overdueBooks.ToList();
@@ -57,7 +57,8 @@ public class BookReturnNotificationService(
 
             var existingNotifications = await notificationRepository.FindAsync(
                 n => n.BookId == book.Id && n.ReaderId == book.BorrowedByReaderId.Value,
-                cancellationToken);
+                cancellationToken
+            );
 
             if (existingNotifications.Any())
             {
@@ -66,17 +67,17 @@ public class BookReturnNotificationService(
             }
 
             var daysOverdue = (DateTime.UtcNow - book.DueDate.Value).Days;
-            var message = $"The book '{book.Title}' is {daysOverdue} day(s) overdue. Please return it to the library.";
+            var message =
+                $"The book '{book.Title}' is {daysOverdue} day(s) overdue. Please return it to the library.";
 
-            var notification = new Notification(
-                book.BorrowedByReaderId.Value,
-                book.Id,
-                message
-            );
+            var notification = new Notification(book.BorrowedByReaderId.Value, book.Id, message);
 
             await notificationRepository.AddAsync(notification, cancellationToken);
-            logger.LogInformation("Created notification for overdue book: {BookTitle} (Reader: {ReaderId})",
-                book.Title, book.BorrowedByReaderId.Value);
+            logger.LogInformation(
+                "Created notification for overdue book: {BookTitle} (Reader: {ReaderId})",
+                book.Title,
+                book.BorrowedByReaderId.Value
+            );
         }
 
         await notificationRepository.SaveChangesAsync(cancellationToken);

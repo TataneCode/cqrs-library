@@ -1,3 +1,6 @@
+using Library.Api.Mappers;
+using Library.Api.Requests.Books;
+using Library.Api.Responses.Common;
 using Library.Application.Commands.Books;
 using Library.Application.Queries.Books;
 using MediatR;
@@ -14,7 +17,8 @@ public static class BooksEndpoints
         group.MapGet("/", async (IMediator mediator, CancellationToken cancellationToken) =>
         {
             var books = await mediator.Send(new GetAllBooksQuery(), cancellationToken);
-            return Results.Ok(books);
+            var response = books.ToResponses();
+            return Results.Ok(response);
         })
         .WithName("GetAllBooks")
         .Produces(200);
@@ -22,22 +26,25 @@ public static class BooksEndpoints
         group.MapGet("/available", async (IMediator mediator, CancellationToken cancellationToken) =>
         {
             var books = await mediator.Send(new GetAvailableBooksQuery(), cancellationToken);
-            return Results.Ok(books);
+            var response = books.ToResponses();
+            return Results.Ok(response);
         })
         .WithName("GetAvailableBooks")
         .Produces(200);
 
-        group.MapPost("/", async ([FromBody] CreateBookCommand command, IMediator mediator, CancellationToken cancellationToken) =>
+        group.MapPost("/", async ([FromBody] CreateBookRequest request, IMediator mediator, CancellationToken cancellationToken) =>
         {
+            var command = request.ToCommand();
             var bookId = await mediator.Send(command, cancellationToken);
-            return Results.Created($"/api/books/{bookId}", new { id = bookId });
+            return Results.Created($"/api/books/{bookId}", new CreatedResourceResponse(bookId));
         })
         .WithName("CreateBook")
         .Produces(201);
 
-        group.MapPost("/{bookId:guid}/borrow", async (Guid bookId, [FromBody] BorrowRequest request, IMediator mediator, CancellationToken cancellationToken) =>
+        group.MapPost("/{bookId:guid}/borrow", async (Guid bookId, [FromBody] BorrowBookRequest request, IMediator mediator, CancellationToken cancellationToken) =>
         {
-            await mediator.Send(new BorrowBookCommand(bookId, request.ReaderId), cancellationToken);
+            var command = request.ToBorrowCommand(bookId);
+            await mediator.Send(command, cancellationToken);
             return Results.Ok();
         })
         .WithName("BorrowBook")
@@ -51,6 +58,4 @@ public static class BooksEndpoints
         .WithName("ReturnBook")
         .Produces(200);
     }
-
-    private record BorrowRequest(Guid ReaderId);
 }

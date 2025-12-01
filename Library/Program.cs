@@ -1,6 +1,7 @@
 using Library.Api;
 using Library.Domain.Entities;
 using Library.Infrastructure.Data;
+using Library.Infrastructure.Extensions;
 using Library.Infrastructure.Persistence;
 using Library.Infrastructure.Repositories;
 using Library.Infrastructure.Services;
@@ -46,38 +47,10 @@ app.MapBooksEndpoints();
 app.MapReadersEndpoints();
 app.MapNotificationsEndpoints();
 
-// Check for database seeding
-var needSeed =
-    builder.Configuration.GetValue<bool>("NeedSeed", false)
-    || Environment.GetEnvironmentVariable("NeedSeed")?.ToLower() == "true";
-
-if (needSeed)
-{
-    using var scope = app.Services.CreateScope();
-    var services = scope.ServiceProvider;
-
-    try
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogInformation("NeedSeed is set to true. Preparing database...");
-
-        var context = services.GetRequiredService<LibraryDbContext>();
-
-        // Run migrations
-        logger.LogInformation("Applying migrations...");
-        await context.Database.MigrateAsync();
-        logger.LogInformation("Migrations applied successfully.");
-
-        // Seed database
-        var seeder = services.GetRequiredService<DatabaseSeeder>();
-        await seeder.SeedAsync();
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while seeding the database.");
-        throw;
-    }
-}
+// Seed database if needed (checks NeedSeed configuration/environment variable)
+await app.SeedDatabaseAsync();
 
 await app.RunAsync();
+
+// Make the implicit Program class public so test projects can access it
+public partial class Program { }

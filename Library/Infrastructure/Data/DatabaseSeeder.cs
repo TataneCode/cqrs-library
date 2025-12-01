@@ -1,8 +1,5 @@
-using System.Globalization;
-using CsvHelper;
-using CsvHelper.Configuration;
 using Library.Domain.Entities;
-using Library.Domain.Enums;
+using Library.Infrastructure.Extensions;
 using Library.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,6 +7,9 @@ namespace Library.Infrastructure.Data;
 
 public class DatabaseSeeder(LibraryDbContext context, ILogger<DatabaseSeeder> logger)
 {
+    private const int TargetBookCount = 10000;
+    private const int BooksPerBatch = 1000;
+
     public async Task SeedAsync()
     {
         try
@@ -47,28 +47,7 @@ public class DatabaseSeeder(LibraryDbContext context, ILogger<DatabaseSeeder> lo
     private async Task<List<Author>> SeedAuthorsAsync()
     {
         var csvPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Seeds", "authors.csv");
-
-        if (!File.Exists(csvPath))
-        {
-            throw new FileNotFoundException($"Authors CSV file not found at {csvPath}");
-        }
-
-        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
-        {
-            HasHeaderRecord = true,
-        };
-
-        using var reader = new StreamReader(csvPath);
-        using var csv = new CsvReader(reader, config);
-
-        var records = csv.GetRecords<AuthorCsvRecord>().ToList();
-        var authors = new List<Author>();
-
-        foreach (var record in records)
-        {
-            var author = new Author(record.FirstName, record.LastName, record.Biography);
-            authors.Add(author);
-        }
+        var authors = await CsvImportExtensions.ImportAuthorsFromCsvAsync(csvPath);
 
         await context.Set<Author>().AddRangeAsync(authors);
         await context.SaveChangesAsync();
@@ -79,33 +58,7 @@ public class DatabaseSeeder(LibraryDbContext context, ILogger<DatabaseSeeder> lo
     private async Task<List<Reader>> SeedReadersAsync()
     {
         var csvPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Seeds", "readers.csv");
-
-        if (!File.Exists(csvPath))
-        {
-            throw new FileNotFoundException($"Readers CSV file not found at {csvPath}");
-        }
-
-        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
-        {
-            HasHeaderRecord = true,
-        };
-
-        using var reader = new StreamReader(csvPath);
-        using var csv = new CsvReader(reader, config);
-
-        var records = csv.GetRecords<ReaderCsvRecord>().ToList();
-        var readers = new List<Reader>();
-
-        foreach (var record in records)
-        {
-            var readerEntity = new Reader(
-                record.FirstName,
-                record.LastName,
-                record.Email,
-                record.PhoneNumber
-            );
-            readers.Add(readerEntity);
-        }
+        var readers = await CsvImportExtensions.ImportReadersFromCsvAsync(csvPath);
 
         await context.Set<Reader>().AddRangeAsync(readers);
         await context.SaveChangesAsync();
@@ -116,110 +69,32 @@ public class DatabaseSeeder(LibraryDbContext context, ILogger<DatabaseSeeder> lo
     private async Task<int> SeedBooksAsync(List<Author> authors)
     {
         var csvPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Seeds", "book-titles.csv");
+        var bookTemplates = await CsvImportExtensions.ImportBookTitlesFromCsvAsync(csvPath);
 
-        if (!File.Exists(csvPath))
-        {
-            throw new FileNotFoundException($"Book titles CSV file not found at {csvPath}");
-        }
-
-        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
-        {
-            HasHeaderRecord = true,
-        };
-
-        using var reader = new StreamReader(csvPath);
-        using var csv = new CsvReader(reader, config);
-
-        var bookTemplates = csv.GetRecords<BookTitleCsvRecord>().ToList();
-        var books = new List<Book>();
-        var random = new Random(42); // Fixed seed for reproducibility
-
-        const int targetBookCount = 10000;
-        var booksPerBatch = 1000;
         var totalBooks = 0;
 
-        // Generate books in batches
-        for (int batch = 0; batch < targetBookCount / booksPerBatch; batch++)
+        // Generate and seed books in batches
+        for (int batch = 0; batch < TargetBookCount / BooksPerBatch; batch++)
         {
-            books.Clear();
+            var startIndex = batch * BooksPerBatch;
 
-            for (int i = 0; i < booksPerBatch; i++)
-            {
-                var templateIndex = (batch * booksPerBatch + i) % bookTemplates.Count;
-                var template = bookTemplates[templateIndex];
-                var author = authors[(batch * booksPerBatch + i) % authors.Count];
+            // Generate only the books for this batch
+            var booksInBatch = CsvImportExtensions.GenerateBooksFromTemplates(
+                bookTemplates,
+                authors,
+                BooksPerBatch,
+                randomSeed: 42,
+                startIndex: startIndex
+            );
 
-                // Create variations of titles for uniqueness
-                var titleSuffix = (batch * booksPerBatch + i) / bookTemplates.Count;
-                var title = titleSuffix == 0
-                    ? template.Title
-                    : $"{template.Title} - Edition {titleSuffix + 1}";
-
-                // Generate ISBN-13
-                var isbn = GenerateIsbn(batch * booksPerBatch + i);
-
-                // Parse BookType
-                var bookType = Enum.Parse<BookType>(template.BookType);
-
-                // Vary publication years slightly
-                var yearVariation = random.Next(-2, 3);
-                var publishedYear = template.Year + yearVariation;
-                var publishedDate = new DateTime(
-                    Math.Max(1800, Math.Min(DateTime.UtcNow.Year, publishedYear)),
-                    random.Next(1, 13),
-                    random.Next(1, 28),
-                    0, 0, 0,
-                    DateTimeKind.Utc
-                );
-
-                var book = new Book(
-                    title,
-                    isbn,
-                    bookType,
-                    publishedDate,
-                    author.Id
-                );
-
-                books.Add(book);
-            }
-
-            await context.Set<Book>().AddRangeAsync(books);
+            await context.Set<Book>().AddRangeAsync(booksInBatch);
             await context.SaveChangesAsync();
 
-            totalBooks += books.Count;
+            totalBooks += booksInBatch.Count;
             logger.LogInformation("Seeded batch {Batch}: {Count} books (Total: {Total})",
-                batch + 1, books.Count, totalBooks);
+                batch + 1, booksInBatch.Count, totalBooks);
         }
 
         return totalBooks;
     }
-
-    private static string GenerateIsbn(int seed)
-    {
-        // Generate a simple ISBN-13 (not a valid check digit, but unique)
-        var isbn = $"978{seed:D10}";
-        return isbn.Length > 13 ? isbn[..13] : isbn.PadRight(13, '0');
-    }
-}
-
-public class AuthorCsvRecord
-{
-    public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
-    public string Biography { get; set; } = string.Empty;
-}
-
-public class ReaderCsvRecord
-{
-    public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string PhoneNumber { get; set; } = string.Empty;
-}
-
-public class BookTitleCsvRecord
-{
-    public string Title { get; set; } = string.Empty;
-    public string BookType { get; set; } = string.Empty;
-    public int Year { get; set; }
 }

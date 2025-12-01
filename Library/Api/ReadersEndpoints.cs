@@ -1,4 +1,6 @@
-using Library.Application.Commands.Readers;
+using Library.Api.Mappers;
+using Library.Api.Requests.Readers;
+using Library.Api.Responses.Common;
 using Library.Application.Queries.Readers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -14,15 +16,17 @@ public static class ReadersEndpoints
         group.MapGet("/", async (IMediator mediator, CancellationToken cancellationToken) =>
         {
             var readers = await mediator.Send(new GetAllReadersQuery(), cancellationToken);
-            return Results.Ok(readers);
+            var response = readers.ToResponses();
+            return Results.Ok(response);
         })
         .WithName("GetAllReaders")
         .Produces(200);
 
-        group.MapPost("/", async ([FromBody] CreateReaderCommand command, IMediator mediator, CancellationToken cancellationToken) =>
+        group.MapPost("/", async ([FromBody] CreateReaderRequest request, IMediator mediator, CancellationToken cancellationToken) =>
         {
+            var command = request.ToCommand();
             var readerId = await mediator.Send(command, cancellationToken);
-            return Results.Created($"/api/readers/{readerId}", new { id = readerId });
+            return Results.Created($"/api/readers/{readerId}", new CreatedResourceResponse(readerId));
         })
         .WithName("CreateReader")
         .Produces(201);

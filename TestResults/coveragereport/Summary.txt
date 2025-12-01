@@ -1,0 +1,43 @@
+Summary
+  Generated on: 30/11/2025 - 21:28:44
+  Coverage date: 30/11/2025 - 21:28:36
+  Parser: Cobertura
+  Assemblies: 1
+  Classes: 21
+  Files: 21
+  Line coverage: 98.5%
+  Covered lines: 269
+  Uncovered lines: 4
+  Coverable lines: 273
+  Total lines: 489
+  Branch coverage: 100% (48 of 48)
+  Covered branches: 48
+  Total branches: 48
+  Method coverage: 98.9% (94 of 95)
+  Full method coverage: 95.7% (91 of 95)
+  Covered methods: 94
+  Fully covered methods: 91
+  Total methods: 95
+
+Library                                                                         98.5%
+  Library.Application.Commands.Authors.CreateAuthorCommand                       100%
+  Library.Application.Commands.Authors.CreateAuthorCommandHandler                100%
+  Library.Application.Commands.Books.BorrowBookCommand                           100%
+  Library.Application.Commands.Books.BorrowBookCommandHandler                    100%
+  Library.Application.Commands.Books.CreateBookCommand                           100%
+  Library.Application.Commands.Books.CreateBookCommandHandler                    100%
+  Library.Application.Commands.Books.ReturnBookCommand                           100%
+  Library.Application.Commands.Books.ReturnBookCommandHandler                    100%
+  Library.Application.Commands.Notifications.DeleteNotificationCommand           100%
+  Library.Application.Commands.Notifications.DeleteNotificationCommandHandler    100%
+  Library.Application.Commands.Readers.CreateReaderCommand                       100%
+  Library.Application.Commands.Readers.CreateReaderCommandHandler                100%
+  Library.Application.Queries.Authors.GetAllAuthorsQueryHandler                  100%
+  Library.Application.Queries.Books.GetAllBooksQueryHandler                      100%
+  Library.Application.Queries.Books.GetAvailableBooksQueryHandler                100%
+  Library.Application.Queries.Readers.GetAllReadersQueryHandler                  100%
+  Library.Domain.Entities.Author                                                96.2%
+  Library.Domain.Entities.BaseEntity                                             100%
+  Library.Domain.Entities.Book                                                  98.1%
+  Library.Domain.Entities.Notification                                          96.4%
+  Library.Domain.Entities.Reader                                                97.3%
