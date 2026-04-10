@@ -26,7 +26,7 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
         builder.HasOne(n => n.Book)
             .WithMany(b => b.Notifications)
             .HasForeignKey(n => n.BookId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(n => n.Status);
         builder.HasIndex(n => n.ReaderId);

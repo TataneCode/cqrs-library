@@ -5,8 +5,9 @@ using MediatR;
 namespace Library.Application.Commands.Books;
 
 public class BorrowBookCommandHandler(
-    IRepository<Book> bookRepository,
-    IRepository<Reader> readerRepository) : IRequestHandler<BorrowBookCommand, Unit>
+    IBookRepository bookRepository,
+    IRepository<Reader> readerRepository,
+    IRepository<Notification> notificationRepository) : IRequestHandler<BorrowBookCommand, Unit>
 {
     public async Task<Unit> Handle(BorrowBookCommand request, CancellationToken cancellationToken)
     {
@@ -18,8 +19,15 @@ public class BorrowBookCommandHandler(
         if (reader == null)
             throw new InvalidOperationException($"Reader with ID {request.ReaderId} not found");
 
-        if (!reader.CanBorrowMoreBooks())
+        var currentlyBorrowedBooks = await bookRepository.FindAsync(
+            b => b.BorrowedByReaderId == request.ReaderId, cancellationToken);
+        if (currentlyBorrowedBooks.Count() >= Reader.MaxBorrowedBooks)
             throw new InvalidOperationException($"Reader has reached the maximum limit of {Reader.MaxBorrowedBooks} borrowed books");
+
+        var pendingNotifications = await notificationRepository.FindAsync(
+            n => n.BookId == request.BookId, cancellationToken);
+        if (pendingNotifications.Any())
+            throw new InvalidOperationException($"Book '{book.Title}' has pending return notifications and cannot be borrowed until they are resolved");
 
         book.Borrow(request.ReaderId);
         await bookRepository.UpdateAsync(book, cancellationToken);

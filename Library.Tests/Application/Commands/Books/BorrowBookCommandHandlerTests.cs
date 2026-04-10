@@ -9,17 +9,20 @@ namespace Library.Tests.Application.Commands.Books;
 
 public class BorrowBookCommandHandlerTests
 {
-    private readonly Mock<IRepository<Book>> _bookRepositoryMock;
+    private readonly Mock<IBookRepository> _bookRepositoryMock;
     private readonly Mock<IRepository<Reader>> _readerRepositoryMock;
+    private readonly Mock<IRepository<Notification>> _notificationRepositoryMock;
     private readonly BorrowBookCommandHandler _handler;
 
     public BorrowBookCommandHandlerTests()
     {
-        _bookRepositoryMock = new Mock<IRepository<Book>>();
+        _bookRepositoryMock = new Mock<IBookRepository>();
         _readerRepositoryMock = new Mock<IRepository<Reader>>();
+        _notificationRepositoryMock = new Mock<IRepository<Notification>>();
         _handler = new BorrowBookCommandHandler(
             _bookRepositoryMock.Object,
-            _readerRepositoryMock.Object
+            _readerRepositoryMock.Object,
+            _notificationRepositoryMock.Object
         );
     }
 
@@ -33,7 +36,7 @@ public class BorrowBookCommandHandlerTests
         var cancellationToken = CancellationToken.None;
 
         var book = CreateMockBook(bookId);
-        var reader = CreateMockReader(readerId, borrowedBooksCount: 0);
+        var reader = CreateMockReader(readerId);
 
         _bookRepositoryMock
             .Setup(x => x.GetByIdAsync(bookId, cancellationToken))
@@ -42,6 +45,14 @@ public class BorrowBookCommandHandlerTests
         _readerRepositoryMock
             .Setup(x => x.GetByIdAsync(readerId, cancellationToken))
             .ReturnsAsync(reader);
+
+        _bookRepositoryMock
+            .Setup(x => x.FindAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Book, bool>>>(), cancellationToken))
+            .ReturnsAsync(Enumerable.Empty<Book>());
+
+        _notificationRepositoryMock
+            .Setup(x => x.FindAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Notification, bool>>>(), cancellationToken))
+            .ReturnsAsync(Enumerable.Empty<Notification>());
 
         _bookRepositoryMock
             .Setup(x => x.UpdateAsync(book, cancellationToken))
@@ -146,7 +157,7 @@ public class BorrowBookCommandHandlerTests
         var cancellationToken = CancellationToken.None;
 
         var book = CreateMockBook(bookId);
-        var reader = CreateMockReader(readerId, borrowedBooksCount: 3);
+        var reader = CreateMockReader(readerId);
 
         _bookRepositoryMock
             .Setup(x => x.GetByIdAsync(bookId, cancellationToken))
@@ -156,12 +167,60 @@ public class BorrowBookCommandHandlerTests
             .Setup(x => x.GetByIdAsync(readerId, cancellationToken))
             .ReturnsAsync(reader);
 
+        var borrowedBooks = Enumerable.Range(0, Reader.MaxBorrowedBooks)
+            .Select(_ => CreateMockBook(Guid.NewGuid()));
+        _bookRepositoryMock
+            .Setup(x => x.FindAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Book, bool>>>(), cancellationToken))
+            .ReturnsAsync(borrowedBooks);
+
         // Act
         var act = async () => await _handler.Handle(command, cancellationToken);
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage($"Reader has reached the maximum limit of {Reader.MaxBorrowedBooks} borrowed books");
+
+        _bookRepositoryMock.Verify(
+            x => x.UpdateAsync(It.IsAny<Book>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task Handle_BookHasPendingNotification_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var bookId = Guid.NewGuid();
+        var readerId = Guid.NewGuid();
+        var command = new BorrowBookCommand(bookId, readerId);
+        var cancellationToken = CancellationToken.None;
+
+        var book = CreateMockBook(bookId);
+        var reader = CreateMockReader(readerId);
+
+        _bookRepositoryMock
+            .Setup(x => x.GetByIdAsync(bookId, cancellationToken))
+            .ReturnsAsync(book);
+
+        _readerRepositoryMock
+            .Setup(x => x.GetByIdAsync(readerId, cancellationToken))
+            .ReturnsAsync(reader);
+
+        _bookRepositoryMock
+            .Setup(x => x.FindAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Book, bool>>>(), cancellationToken))
+            .ReturnsAsync(Enumerable.Empty<Book>());
+
+        var notification = new Notification(readerId, bookId, "Overdue book notification");
+        _notificationRepositoryMock
+            .Setup(x => x.FindAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Notification, bool>>>(), cancellationToken))
+            .ReturnsAsync(new[] { notification });
+
+        // Act
+        var act = async () => await _handler.Handle(command, cancellationToken);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage($"Book '{book.Title}' has pending return notifications and cannot be borrowed until they are resolved");
 
         _bookRepositoryMock.Verify(
             x => x.UpdateAsync(It.IsAny<Book>(), It.IsAny<CancellationToken>()),
@@ -184,7 +243,7 @@ public class BorrowBookCommandHandlerTests
         return book;
     }
 
-    private static Reader CreateMockReader(Guid readerId, int borrowedBooksCount)
+    private static Reader CreateMockReader(Guid readerId)
     {
         var reader = new Reader(
             "Test",
@@ -195,28 +254,6 @@ public class BorrowBookCommandHandlerTests
 
         typeof(Reader).GetProperty(nameof(Reader.Id))!
             .SetValue(reader, readerId);
-
-        if (borrowedBooksCount > 0)
-        {
-            var borrowedBooksField = typeof(Reader)
-                .GetField("_borrowedBooks", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-            if (borrowedBooksField != null)
-            {
-                var borrowedBooks = (List<Book>)borrowedBooksField.GetValue(reader)!;
-                for (int i = 0; i < borrowedBooksCount; i++)
-                {
-                    var book = new Book(
-                        $"Borrowed Book {i}",
-                        $"ISBN{i:D13}",
-                        Library.Domain.Enums.BookType.Novel,
-                        DateTime.UtcNow.AddYears(-1),
-                        Guid.NewGuid()
-                    );
-                    borrowedBooks.Add(book);
-                }
-            }
-        }
 
         return reader;
     }

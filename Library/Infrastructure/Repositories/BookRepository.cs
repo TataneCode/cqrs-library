@@ -13,6 +13,14 @@ public interface IBookRepository : IRepository<Book>
 
 public class BookRepository(LibraryDbContext context) : Repository<Book>(context), IBookRepository
 {
+    public override async Task<IEnumerable<Book>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Include(b => b.Author)
+            .Include(b => b.BorrowedByReader)
+            .ToListAsync(cancellationToken);
+    }
 
     public async Task<IEnumerable<Book>> GetAvailableBooksAsync(CancellationToken cancellationToken = default)
     {
